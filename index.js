@@ -20,12 +20,27 @@ async function run() {
 	try {
 		await client.connect()
 		const productCollection = client.db('msi-gc').collection('products')
+		const userCollection = client.db('msi-gc').collection('users')
 
+		// ALL PRODUCTS IN http://localhost:5000/products
 		app.get('/products', async (req, res) => {
 			const query = {}
 			const cursor = productCollection.find(query)
 			const products = await cursor.toArray()
 			res.send(products)
+		})
+
+		// Keep user information in database
+		app.put('/user/:email', async (req, res) => {
+			const email = req.params.email
+			const user = req.body
+			const filter = { email: email }
+			const options = { upsert: true }
+			const updateDoc = {
+				$set: user,
+			}
+			const result = await userCollection.updateOne(filter, updateDoc, options)
+			res.send(result)
 		})
 	} finally {
 	}
