@@ -58,6 +58,13 @@ async function run() {
 			const users = await userCollection.find().toArray()
 			res.send(users)
 		})
+
+		app.get('/users/:email', async (req, res) => {
+			const query = { email: req.params.email }
+			const cursor = userCollection.find(query)
+			const products = await cursor.toArray()
+			res.send(products)
+		})
 	} finally {
 	}
 }
