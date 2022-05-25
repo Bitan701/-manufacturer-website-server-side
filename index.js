@@ -1,7 +1,7 @@
 const express = require('express')
 const cors = require('cors')
 require('dotenv').config()
-const { MongoClient, ServerApiVersion } = require('mongodb')
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb')
 const app = express()
 const port = process.env.PORT || 5000
 
@@ -30,6 +30,33 @@ async function run() {
 			res.send(products)
 		})
 
+		//get single product with id
+		app.get('/products/:id', async (req, res) => {
+			const id = req.params.id
+			const query = { _id: ObjectId(id) }
+			const product = await productCollection.findOne(query)
+			res.send({ product })
+		})
+
+		// update quantity of a product
+		app.put('/products/:id', async (req, res) => {
+			const id = req.params.id
+			const updatedProduct = req.body
+			const filter = { _id: ObjectId(id) }
+			const options = { upsert: true }
+			const updatedDoc = {
+				$set: {
+					availableQuantity: updatedProduct.amount,
+				},
+			}
+			const result = await productCollection.updateOne(
+				filter,
+				updatedDoc,
+				options
+			)
+			res.send(result)
+		})
+
 		// Keep user information in database
 		app.put('/users/:email', async (req, res) => {
 			const email = req.params.email
@@ -54,11 +81,13 @@ async function run() {
 			res.send(result)
 		})
 
+		// get all users
 		app.get('/users', async (req, res) => {
 			const users = await userCollection.find().toArray()
 			res.send(users)
 		})
 
+		// get a single user
 		app.get('/users/:email', async (req, res) => {
 			const query = { email: req.params.email }
 			const cursor = userCollection.find(query)
