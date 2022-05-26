@@ -21,6 +21,7 @@ async function run() {
 		await client.connect()
 		const productCollection = client.db('msi-gc').collection('products')
 		const userCollection = client.db('msi-gc').collection('users')
+		const orderCollection = client.db('msi-gc').collection('orders')
 
 		// ALL PRODUCTS IN http://localhost:5000/products
 		app.get('/products', async (req, res) => {
@@ -93,6 +94,41 @@ async function run() {
 			const cursor = userCollection.find(query)
 			const products = await cursor.toArray()
 			res.send(products)
+		})
+
+		// insert order info
+		app.post('/orders', async (req, res) => {
+			const newCase = req.body
+			const result = await orderCollection.insertOne(newCase)
+			res.send(result)
+		})
+
+		// get all orders
+		app.get('/orders', async (req, res) => {
+			const query = {}
+			const cursor = orderCollection.find(query)
+			const products = await cursor.toArray()
+			res.send(products)
+		})
+
+		// get order info
+		app.get('/orders/:email', async (req, res) => {
+			const query = { email: req.params.email }
+			const cursor = orderCollection.find(query)
+			const products = await cursor.toArray()
+			res.send(products)
+		})
+
+		// Add review in order details
+		app.put('/orders/:id', async (req, res) => {
+			const id = req.params.id
+			const filter = { _id: ObjectId(id) }
+			const options = { upsert: true }
+			const updateDoc = {
+				$set: req.body,
+			}
+			const result = await orderCollection.updateOne(filter, updateDoc, options)
+			res.send(result)
 		})
 	} finally {
 	}
