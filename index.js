@@ -27,8 +27,8 @@ async function run() {
 
 		app.post('/create-payment-intent', async (req, res) => {
 			const service = req.body
-			const price = service.price
-			const amount = price * 100
+			const price = service.payment
+			const amount = parseInt(price) * 100
 			const paymentIntent = await stripe.paymentIntents.create({
 				amount: amount,
 				currency: 'usd',
@@ -51,6 +51,14 @@ async function run() {
 			const query = { _id: ObjectId(id) }
 			const product = await productCollection.findOne(query)
 			res.send({ product })
+		})
+
+		//add a product
+		app.post('/products', async (req, res) => {
+			const newProduct = req.body
+			console.log('adding new product', newProduct)
+			const result = await productCollection.insertOne(newProduct)
+			res.send(result)
 		})
 
 		// update quantity of a product
@@ -139,6 +147,14 @@ async function run() {
 			const cursor = orderCollection.find(query)
 			const products = await cursor.toArray()
 			res.send(products)
+		})
+
+		//delete modal
+		app.delete('/orders/:id', async (req, res) => {
+			const id = req.params.id
+			const query = { _id: ObjectId(id) }
+			const result = await orderCollection.deleteOne(query)
+			res.send(result)
 		})
 
 		// Add review in order details
